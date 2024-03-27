@@ -132,6 +132,9 @@ public class App {
             System.out.println();
             blackTurn = !blackTurn; // Flip the turn
 
+            //Check to see if any pieces have been captured. Adjust scores accordingly if so
+            
+
         }
 
     }

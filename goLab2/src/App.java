@@ -49,13 +49,16 @@ public class App {
 
     }
 
+
     private static class Coordinate {
         private int x;
         private int y;
+        private boolean black;
 
-        public Coordinate(int x, int y) {
+        public Coordinate(int x, int y, boolean color) {
             this.x = x;
             this.y = y;
+            this.black = color;
         }
 
         public int[] getCoordinates() {
@@ -63,12 +66,31 @@ public class App {
             return c;
         }
 
+        //Implement a method to check if a piece is surrounded by opponents/edges
+
     }
 
     // ◯ ●
     public static void main(String[] args) {
         // Initialize the 2d board to be 19 x 19
         String[][] board = new String[9][9];
+
+        boolean[][] lives = new boolean[9][9];
+
+        String[][] premadeBoard = {
+  
+                {null, null, "-*", "-*", null, null, null, null, null},
+                {null, "-*", "-o", "-o", "-*", null, null, null, null},
+                {null,  "-*", "-o", null, "-o", "-*", null, null, null},
+                {null,  "-*", "-o", "-o", "-o", "-*", null, null, null},
+                {null,  "-*", "-o", null, "-o", "-*", null, null, null},
+                {null, null, "-*", "-o", "-o", "-*", null, null, null},
+                {null, null, null, "-*", "-*", null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
+
+        };
+
         printBoard(board);
 
         // Board establishedCoords = new Board();
@@ -125,7 +147,7 @@ public class App {
 
             // Add the new coordinate to our list of coordinates, print out the board, and
             // flip the turn
-            Coordinate c = new Coordinate(x, y);
+            Coordinate c = new Coordinate(x, y, (blackTurn) ? true : false);
             coordinates.add(c);
             board[y][x] = (blackTurn) ? "*" : "o";
             printBoard(board);
@@ -134,7 +156,10 @@ public class App {
 
             //Check to see if any pieces have been captured. Adjust scores accordingly if so
             
+            //A piece is captured when all adjacent points are surrounded (by edge or by opponent pieces) unless the pieces form their own territory (requires two enclosed eyes or spaces)
+            //within opponent territory
 
+            //Loop through each piece, check to see what surrounds that piece, and check to see what is surrounds each of those pieces 
         }
 
     }

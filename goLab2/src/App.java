@@ -149,7 +149,15 @@ public class App {
             // flip the turn
             Coordinate c = new Coordinate(x, y, (blackTurn) ? true : false);
             coordinates.add(c);
-            board[y][x] = (blackTurn) ? "*" : "o";
+            if(y == 0 && x > 0)
+            {
+                board[y][x] = (blackTurn) ? "-*" : "-o";
+            }
+            else
+            {
+                board[y][x] = (blackTurn) ? "*" : "o";
+            }
+            
             printBoard(board);
             System.out.println();
             blackTurn = !blackTurn; // Flip the turn
@@ -159,7 +167,7 @@ public class App {
             //A piece is captured when all adjacent points are surrounded (by edge or by opponent pieces) unless the pieces form their own territory (requires two enclosed eyes or spaces)
             //within opponent territory
 
-            //Loop through each piece, check to see what surrounds that piece, and check to see what is surrounds each of those pieces 
+            //Each time a piece is added, a check must be done to see if that piece is now apart of a group of pieces (of that same color)
         }
 
     }

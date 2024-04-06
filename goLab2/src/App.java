@@ -1,4 +1,4 @@
-package goLab2.src;
+//package goLab2.src;
 import java.util.Scanner;
 
 import java.util.ArrayList;
@@ -147,11 +147,27 @@ public class App {
         //This means that the stone is surrounded but has a friendly stone next to it, we need to check if that stone can breathe
         else
         {
-
+            //We only want to check the adjacent stones that are equal to color (friendly stones)
+            if(upLiberty == color)
+            {
+                return hasLiberties(x, y + 1, color);
+            }
+            else if(downLiberty == color)
+            {
+                return hasLiberties(x, y - 1, color);
+            }
+            else if(leftLiberty == color)
+            {
+                return hasLiberties(x -1, y, color);
+            }
+            else if(rightLiberty == color)
+            {
+                return hasLiberties(x + 1, y, color);
+            }
         }
     }
 
-    public static boolean canBreathe()
+    public static void canBreathe()
     {
         boolean[][] visited = new boolean[9][9];
 
@@ -160,27 +176,29 @@ public class App {
             for (int j = 0; j < 8; j++) {
                 int color = numberBoard[i][j];
                 //if the current piece is 0, its empty, no need to check if it has liberties. OR, if we've already visited this piece, don't check
-                if(color != 1 || color != 2 || visited[i][j])
+                if(color != 1 || color != 2)
+                {
+                    visited[i][j] = true;
+                    alive[i][j] = true;
+                    continue;
+                }
+                else if(visited[i][j])
                 {
                     continue;
                 }
                 //Otherwise, check if this piece has liberties
                 else
                 {
+                    boolean colorCanBreathe = hasLiberties(i, j, color);
+                    visited[i][j] = true;
+                    alive[i][j] = colorCanBreathe;
 
                 }
 
-                /*
-                if (numberBoard[i][j] == color && !visited[i][j]) {
-                    // Start DFS from the current position
-                    if (!breathe(i, j, color, visited)) {
-                        return false; // No liberties found for this group
-                    }
-                    */
+                
                 }
             }
         }
-        return true; 
     }
     
 
@@ -196,6 +214,18 @@ public class App {
         }
     }
 
+    static void printAliveBoard()
+    {
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                System.out.print(alive[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
     
 // Initialize the 2d board to be 19 x 19
 public static String[][] board = new String[9][9];
@@ -204,6 +234,7 @@ public static String[][] board = new String[9][9];
 public static int[][] numberBoard = new int[9][9]; 
 
 public static boolean[][] visited = new boolean[9][9];
+public static boolean[][] alive = new boolean[9][9];
 
 
     // ◯ ●
@@ -304,8 +335,9 @@ public static boolean[][] visited = new boolean[9][9];
             numberBoard[y][x] = (blackTurn) ? 1 : 2;
             blackTurn = !blackTurn; // Flip the turn
 
-            boolean pieceCanBreathe = canBreathe();
-            System.out.println(pieceCanBreathe);
+            canBreathe();
+            printAliveBoard();
+
 
             //printNumberBoard();
 
@@ -319,4 +351,3 @@ public static boolean[][] visited = new boolean[9][9];
         }
 
     }
-}

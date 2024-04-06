@@ -158,7 +158,7 @@ public static boolean[][] alive = new boolean[9][9];
     }
 
     static boolean checkBounds(int x, int y) {
-        if ((x >= 8 || x < 0) || (y >= 8 || y < 0)) {
+        if ((x > 8 || x < 0) || (y > 8 || y < 0)) {
             return false;
         } else {
             return true;
@@ -188,68 +188,126 @@ public static boolean[][] alive = new boolean[9][9];
 
     }
 
-
-    public static boolean hasLiberties(int x, int y, int color, int friendlyStone)
+    public static int oppositeColor(int c)
     {
+        if(c == 1)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+
+    public static boolean hasLiberties(int x, int y, int color, boolean[][]checked)
+    {
+       
+
+        if(numberBoard[y][x] != color)
+        {
+            return false;
+        }
         
         //Check up
-        boolean upValidity = checkBounds(y-1, x);
+        boolean upValidity = checkBounds(x, y-1);
         int upLiberty = 3;
         if(upValidity)
         {
             upLiberty = numberBoard[y-1][x];
         }
-        boolean downValidity = checkBounds(y+1, x);
+        boolean downValidity = checkBounds(x, y+1);
         int downLiberty = 3;
         if(downValidity)
         {
             downLiberty = numberBoard[y+1][x];
         }
-        boolean leftValidity = checkBounds(y, x-1);
+        boolean leftValidity = checkBounds(x-1, y);
         int leftLiberty = 3;
         if(leftValidity)
         {
             leftLiberty = numberBoard[y][x-1];
         }
-        boolean rightValidity = checkBounds(y, x+1);
+        boolean rightValidity = checkBounds(x+1, y);
         int rightLiberty = 3;
         if(rightValidity)
         {
             rightLiberty = numberBoard[y][x+1];
         }
 
-        if(y == 1 && x == 2)
+        int oColor = oppositeColor(color);
+
+
+        if((upLiberty == oColor || upLiberty == 3) && (downLiberty == oColor || downLiberty == 3) &&(leftLiberty == oColor || leftLiberty == 3)&&(rightLiberty == oColor || rightLiberty == 3))
         {
-            System.out.println("2,1 Coord: upLiberty = " + upLiberty + " down liberty = " + downLiberty + " left liberty = " + leftLiberty + " right liberty = " + rightLiberty);
-        }
-        else if(x == 2 && y == 2)
-        {
-            System.out.println("2,2 coord: upLiberty = " + upLiberty + " down liberty = " + downLiberty + " left liberty = " + leftLiberty + " right liberty = " + rightLiberty);
-        }
-        
-        //This if-else branch are my base case scenarios. If a piece has a 0 around it, it can breathe. If a piece is completely surrounded by
-        //enemy pieces or the edge, it has no liberties (and is captured)
-        //If any position is = 0, this coordinate has a liberty (and can "breathe")
-        if(upLiberty == 0 || downLiberty == 0 || leftLiberty == 0 || rightLiberty == 0)
-        {
-            return true;
-        }
-        //This means that this stone is surrounded by wall or the opponents stone since it didn't pass the first check.
-        else if(upLiberty != color && downLiberty != color && leftLiberty != color && rightLiberty != color)
-        {
-            //System.out.println();
-            //System.out.println("Color: " + color);
-            //System.out.println("upLiberty = " + upLiberty + " down liberty = " + downLiberty + " left liberty = " + leftLiberty + " right liberty = " + rightLiberty);
-            //System.out.println("X: " + x + "Y: " + y + "is surrounded by wall or enemy pieces");
-            //System.out.println();
+            System.out.println(x + " " + y + " is surrounded by edge or enemy pieces");
             return false;
         }
-        //This means that the stone is surrounded but has a friendly stone next to it, we need to check if that stone can breathe
+        if(upLiberty == 0 || downLiberty == 0 || leftLiberty == 0 || rightLiberty == 0)
+        {
+            System.out.println(x + " , " + y + "can breathe");
+            return true;
+        }
+        if(checked[y][x])
+        {
+            System.out.println(x + " " + y + " has already been visited");
+            return false;
+        }
 
-        //System.out.println("One of the adjacent stones is friendly");
-        //We only want to check the adjacent stones that are equal to color (friendly stones)
-        //System.out.println("Friendly stone value: " + friendlyStone);
-        //System.out.println("upLiberty = " + upLiberty + " down liberty = " + downLiberty + " left liberty = " + leftLiberty + " right liberty = " + rightLiberty);
+        int throughX = 0;
+        int throughY = 0;
+        checked[y][x] = true;
+        if(!hasLiberties(x, y + 1, color,checked ))
+        {
+            checked[y+1][x] = true;
+            
+            //If the left liberty can't breathe, check the up liberty
+            if(!hasLiberties(x -1, y, color, checked))
+            {
+                checked[y][x-1] = true;
+                //Check the up liberty
+                
+                if(!hasLiberties(x, y -1, color, checked))
+                {
+                    checked[y-1][x] = true;
+                    //Finally, check the right liberty
+                    //checked[y][x+1] = true;
+                    if(!hasLiberties(x + 1, y, color, checked))
+                    {
+                        System.out.println("None of " + x + " " + y +" surrounding pieces can breathe");
+                        return false;
+                    }
+                    else
+                    {
+                        throughX = x+1;
+                        throughY = y;
+                    }
+                }
+                else
+                {
+                    throughX = x;
+                    throughY = y-1;
+                }
+                
+            }
+            else
+            {
+                throughX = x-1;
+                throughY = y;
+            }
+            
+        }
+        else
+        {
+            throughX = x;
+            throughY = y+1;
+        }
+
+        System.out.println(x + " , "+y+ " can breathe via: (" + throughX + " , " + throughY + ")");
+        return true;
+
+        /*
         if(upLiberty == color)
         {
             System.out.println("Upliberty. friendlyStone = " + friendlyStone);
@@ -262,7 +320,7 @@ public static boolean[][] alive = new boolean[9][9];
             else
             {
                 //System.out.println("Friendly stone is 0");
-                return hasLiberties(x, y + 1, color, 0);
+                return hasLiberties(x, y -1, color, 0);
                 
                 
             }
@@ -280,7 +338,7 @@ public static boolean[][] alive = new boolean[9][9];
             else
             {
                 //System.out.println("Friendly stone is 1");
-                return hasLiberties(x, y - 1, color, 1);
+                return hasLiberties(x, y + 1, color, 1);
             }
             
         }
@@ -310,9 +368,10 @@ public static boolean[][] alive = new boolean[9][9];
             else
             {
                 //System.out.println("Friendly stone is 3");
-                return hasLiberties(x -1, y, color, 3);
+                return hasLiberties(x + 1, y, color, 3);
             }
         }
+        */
         
     }
 
@@ -321,39 +380,39 @@ public static boolean[][] alive = new boolean[9][9];
         boolean[][] visited = new boolean[9][9];
 
         // Iterate over the entire board
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                int color = numberBoard[i][j];
+        for (int y = 0; y < 9; y++) {
+            for (int x = 0; x < 9; x++) {
+                int color = numberBoard[y][x];
                 //if the current piece is 0, its empty, no need to check if it has liberties. OR, if we've already visited this piece, don't check
                 if(color == 0)
                 {
-                    visited[i][j] = true;
-                    alive[i][j] = true;
+                    visited[y][x] = true;
+                    alive[y][x] = true;
                     //System.out.println("X coordinate:" + i + "Y coordinate:" + j + "is an empty spot");
                     continue;
                 }
-                else if(visited[i][j])
+                else if(visited[y][x])
                 {
                     continue;
                 }
                 //Otherwise, check if this piece has liberties
                 else
                 {
+                    System.out.println();
+                    boolean[][] c = new boolean[9][9];
                     //System.out.println("These coords were checked for liberties: " + j + ", " + i);
-                    boolean colorCanBreathe = hasLiberties(j, i, color, -1);
+                    boolean colorCanBreathe = hasLiberties(x, y, color, c);
                     
-                    if(colorCanBreathe)
+                    if(!colorCanBreathe)
                     {
-                        System.out.println("X coordinate: " + j + "Y coordinate: " + i + "has a liberty" );
+                        System.out.println("X coordinate: " + x + "Y coordinate: " + y + "has no liberties" );
                     }
-                    else
-                    {
-                        System.out.println("X coordinate: " + j + "Y coordinate: " + i + "has no liberties" );
-                    }
+
+                    System.out.println();
                     
                     
-                    visited[i][j] = true;
-                    alive[i][j] = colorCanBreathe;
+                    visited[y][x] = true;
+                    alive[y][x] = colorCanBreathe;
 
                 }
 

@@ -1,7 +1,4 @@
 package goLab;
-import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.*;
 public class Go {
 
@@ -608,6 +605,9 @@ public static double whiteScore = 6.5;
 
     public static void calculateScore()
     {
+        int bTotal = 0;
+        int wTotal = 0;
+        Map<String, Integer> frequencies = new HashMap<>();
         for(int y = 0; y < 9; y++)
         {
             for(int x = 0; x <9; x++)

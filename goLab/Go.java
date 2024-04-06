@@ -1,6 +1,7 @@
 package goLab;
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.List;
 public class Go {
 
 // Initialize the 2d board to be 19 x 19
@@ -11,6 +12,9 @@ public static int[][] numberBoard = new int[9][9];
 
 public static boolean[][] visited = new boolean[9][9];
 public static boolean[][] alive = new boolean[9][9];
+
+public static double blackScore = 0;
+public static double whiteScore = 6.5;
 
     public static void main(String[] args) {
         
@@ -135,12 +139,13 @@ public static boolean[][] alive = new boolean[9][9];
 
                     }
 
-                    printBoard(board);
-                    printNumberBoard();
+                  
+                    //printNumberBoard();
                     blackTurn = !blackTurn; // Flip the turn
 
                     canBreathe();
-                    checkCapturedPieces();
+                    board = checkCapturedPieces(board);
+                    printBoard(board);
                 }
     
             }
@@ -220,10 +225,60 @@ public static boolean[][] alive = new boolean[9][9];
         }
     }
 
+    public static int[] retrieveAdjacents(int x, int y, int color)
+    {
+        boolean upValidity = checkBounds(x, y-1);
+        int up = 3;
+        if(upValidity)
+        {
+            up = numberBoard[y-1][x];
+        }
+        boolean downValidity = checkBounds(x, y+1);
+        int down = 3;
+        if(downValidity)
+        {
+            down = numberBoard[y+1][x];
+        }
+        boolean leftValidity = checkBounds(x-1, y);
+        int left = 3;
+        if(leftValidity)
+        {
+            left = numberBoard[y][x-1];
+        }
+        boolean rightValidity = checkBounds(x+1, y);
+        int right = 3;
+        if(rightValidity)
+        {
+            right = numberBoard[y][x+1];
+        }
+        
+         int[] adjacents = {up, down, left, right};
+    
+        return adjacents;
+    }
 
-    public static boolean multipleEyes(int x, int y, int color, int eyes)
+
+    /*
+    public static boolean multipleEyes(int x, int y, int color, ArrayList<int[]> eyes, int fStones, boolean[][]checked)
     {
 
+        if(checked[y][x])
+        {
+            System.out.println("We've already checked: " + x + " " + y);
+            return false;
+        }
+        int[] temp = {x, y};
+        int[] sTemp = {y, x};
+        //If we are checking a spot that is in our eyes list, that means a piece has been placed on what was once an eye
+        if(eyes.contains(temp))
+        {
+            eyes.remove(temp);
+        }
+        else if(eyes.contains(sTemp))
+        {
+            eyes.remove(sTemp);
+        }
+    
         boolean upValidity = checkBounds(x, y-1);
         int up = 3;
         if(upValidity)
@@ -269,29 +324,110 @@ public static boolean[][] alive = new boolean[9][9];
         }
         if(!inAGroup)
         {
+            //System.out.println(x + " " + y + " is not in a group");
             return false;
         }
 
+        //keep track of any eyes we find in this grouping. Check to see if the eyes found are surrounded by teammates/wall.
+        //also keep track of the number of friendly pieces this grouping has
+
+        //ArrayList<int[]> eyeCoords = new ArrayList<>();
+
         for(int i = 0; i < adjacents.length; i++)
         {
+            
             int currColor = adjacents[i];
+            int[]coords = pieces[i].getCoordinates();
+            int xc = coords[0];
+            
+            int yc = coords[1];
+            
+            if(checked[yc][xc])
+            {
+                return false;
+            }
+            
+            
+            //One of the adjacent spots is empty. If it's not already in our list of eyes, add it.
             if(currColor == 0)
             {
-                eyes++;
-                if(eyes >= 2)
+                //eyes++;
+                
+                int[] toAdd = {xc, yc};
+                if(!eyes.contains(toAdd))
                 {
-                    return true;
+                    //System.out.println(xc + " " + yc + " is being added to our list of eyes");
+                    eyes.add(toAdd);
+                    
                 }
+                
             }
             else if(currColor == color)
             {
-                int[]coords = pieces[i].getCoordinates();
-                multipleEyes(coords[0], coords[1], currColor, eyes);
+                fStones++;
+                checked[y][x] = true;
+                System.out.println("Caling multiple eyes: " + x + " " + y);
+                if(multipleEyes(coords[0], coords[1], currColor, eyes, fStones,checked))
+                {
+                    return false;
+                }
             }
         }
         
-        return false;
+        //Exiting the loop means we've hit a point where we are no longer connected to an eye or a friendly stone
+        //If we have less than 4 stones in our chain, we can't possibly have 2 eyes "within" our borders
+        if(fStones < 5)
+        {
+            //System.out.println(x + " " + y + " doesn't have enough stones in the group");
+            return false;
+        }
+        //if we have more than 4 stones, it's possible we have 2 eyes within. Check to see how many eyes are in our list
+        else
+        {
+            //System.out.println("We have more than 4 in our group");
+            if(eyes.size() < 2)    //if we don't have at least 2 eyes our chain is connected to, we can return false
+            {
+                System.out.println(x + " " + y + " not enough eyes");
+                return false;
+            }
+            //Otherwise, we need to check our eyes and see what's around them. If two or more are surrounded by only wall/same color stones, 
+            //we successfully have 2 eyes within our borders and the whole chain is alive
+            else
+            {
+                //System.out.println("We have more than 4 in our group. We have more than 2 eyes");
+                for(int c = 0; c < eyes.size(); c++)
+                {
+                    int[] point = eyes.get(c);
+                    int xToSearch = point[0];
+                    int yToSearch = point[1];
+                    int[] adjacentPoints = retrieveAdjacents(xToSearch, yToSearch, color);
+                    int eyeTouchingEnemyCount = 0;
+                    for(int z = 0; z < adjacentPoints.length; z++)
+                    {
+                        //if any of the eyes within a grouping are touching the opponent, we can't have them secured
+                        
+                        if(z == oppositeColor(color))
+                        {
+                            eyeTouchingEnemyCount++;
+                        }
+                    }
+                    //This means that all of our eyes are touching the enemy
+                    //System.out.print("Size of eyes:" + eyes.size());
+                    //System.out.println(eyes.size() - eyeTouchingEnemyCount);
+                    if(eyes.size() - eyeTouchingEnemyCount < 2)
+                    {
+                        System.out.println(x + " " + y +" not enough eyes that are not touching an enemy");
+                        return false;
+                    }
+
+
+                }
+                return true;
+            }
+        }
+        //return false;
     }
+    */
 
 
     public static boolean hasLiberties(int x, int y, int color, boolean[][]checked)
@@ -413,6 +549,7 @@ public static boolean[][] alive = new boolean[9][9];
     public static void canBreathe()
     {
         boolean[][] visited = new boolean[9][9];
+        boolean[][] secondCheck = new boolean[9][9];
 
         // Iterate over the entire board
         for (int y = 0; y < 9; y++) {
@@ -437,7 +574,23 @@ public static boolean[][] alive = new boolean[9][9];
                     boolean[][] c = new boolean[9][9];
                     //System.out.println("These coords were checked for liberties: " + j + ", " + i);
                     boolean colorCanBreathe = hasLiberties(x, y, color, c);
-                    boolean manyEyes = multipleEyes(x, y, color, 0);
+                    ArrayList<int[]> eyes = new ArrayList<>();
+                    
+                    /*
+                    System.out.println("Calling multiple eyes with: " + x + " " + y);
+                    boolean manyEyes = multipleEyes(x, y, color, eyes, 0, secondCheck);
+                    //secondCheck[y][x] = true;
+                    System.out.println();
+                    //A stone is connected to at least one liberty
+                    if(colorCanBreathe)
+                    {
+                        //if many eyes is true, that means a stone is a part of a group that has 2 or more eyes and is safe
+                        if(manyEyes)
+                        {
+                            System.out.println("Group of stones with 2 eyes");
+                        }
+                    }
+                    */
                     
                    
                     
@@ -451,7 +604,7 @@ public static boolean[][] alive = new boolean[9][9];
             }
         }
 
-    static void checkCapturedPieces()
+    static String[][] checkCapturedPieces(String[][] gBoard)
     {
         for(int y = 0; y < 9; y++)
         {
@@ -463,15 +616,21 @@ public static boolean[][] alive = new boolean[9][9];
                 if(color == 1 && !lives)
                 {
                     System.out.println("Black piece at (" + x + ", " + y + ") has been captured");
+                    blackScore += 1;
+                    gBoard[y][x] = "|";
+                    
                 }
                 else if(color == 2 && !lives)
                 {
                     System.out.println("White piece at (" + x + ", " + y + ") has been captured");
+                    whiteScore += 1;
+                    gBoard[y][x] = "|";
                 }
             }
             
         }
         System.out.println();
+        return gBoard;
     }
     
 

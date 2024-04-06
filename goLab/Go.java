@@ -126,12 +126,7 @@ public static boolean[][] alive = new boolean[9][9];
         }
 
     }
-    /*
-     * This is looking really great, I just made it a 9x9 so it would
-     * be a bit easier to read. You should go ahead and run it and see if you
-     * like it otherwise you can set it be ack to 19x19 in all your loops
-     * and 19x19 in the String array on line 17.
-     */
+
 
      static void printBoard(String[][] array) {
 
@@ -197,29 +192,29 @@ public static boolean[][] alive = new boolean[9][9];
     public static boolean hasLiberties(int x, int y, int color)
     {
         //Check up
-        boolean upValidity = checkBounds(x, y+1);
+        boolean upValidity = checkBounds(y-1, x);
         int upLiberty = 3;
         if(upValidity)
         {
-            upLiberty = numberBoard[x][y+1];
+            upLiberty = numberBoard[y-1][x];
         }
-        boolean downValidity = checkBounds(x, y-1);
+        boolean downValidity = checkBounds(y+1, x);
         int downLiberty = 3;
         if(downValidity)
         {
-            downLiberty = numberBoard[x][y-1];
+            downLiberty = numberBoard[y+1][x];
         }
-        boolean leftValidity = checkBounds(x-1, y);
+        boolean leftValidity = checkBounds(y, x-1);
         int leftLiberty = 3;
         if(leftValidity)
         {
-            leftLiberty = numberBoard[x-1][y];
+            leftLiberty = numberBoard[y][x-1];
         }
-        boolean rightValidity = checkBounds(x+1, y);
+        boolean rightValidity = checkBounds(y, x+1);
         int rightLiberty = 3;
         if(rightValidity)
         {
-            rightLiberty = numberBoard[x+1][y];
+            rightLiberty = numberBoard[y][x+1];
         }
 
         //If any position is = 0, this coordinate has a liberty (and can "breathe")
@@ -228,32 +223,36 @@ public static boolean[][] alive = new boolean[9][9];
             return true;
         }
         //This means that this stone is surrounded by wall or the opponents stone since it didn't pass the first check.
-        else if(upLiberty != color || downLiberty != color || leftLiberty != color || rightLiberty != color)
+        else if(upLiberty != color && downLiberty != color && leftLiberty != color && rightLiberty != color)
         {
+            System.out.println();
+            System.out.println("Color: " + color);
+            System.out.println("upLiberty = " + upLiberty + " down liberty = " + downLiberty + " left liberty = " + leftLiberty + " right liberty = " + rightLiberty);
+            System.out.println("X: " + x + "Y: " + y + "is surrounded by wall or enemy pieces");
+            System.out.println();
             return false;
         }
         //This means that the stone is surrounded but has a friendly stone next to it, we need to check if that stone can breathe
+
+        System.out.println("One of the adjacent stones is friendly");
+        //We only want to check the adjacent stones that are equal to color (friendly stones)
+        if(upLiberty == color)
+        {
+            return hasLiberties(x, y + 1, color);
+        }
+        else if(downLiberty == color)
+        {
+            return hasLiberties(x, y - 1, color);
+        }
+        else if(leftLiberty == color)
+        {
+            return hasLiberties(x -1, y, color);
+        }
         else
         {
-            //We only want to check the adjacent stones that are equal to color (friendly stones)
-            if(upLiberty == color)
-            {
-                return hasLiberties(x, y + 1, color);
-            }
-            else if(downLiberty == color)
-            {
-                return hasLiberties(x, y - 1, color);
-            }
-            else if(leftLiberty == color)
-            {
-                return hasLiberties(x -1, y, color);
-            }
-            else if(rightLiberty == color)
-            {
-                return hasLiberties(x + 1, y, color);
-            }
+            return hasLiberties(x + 1, y, color);
         }
-        return true;
+        
     }
 
     public static void canBreathe()

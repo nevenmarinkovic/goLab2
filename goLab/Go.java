@@ -17,15 +17,15 @@ public static boolean[][] alive = new boolean[9][9];
 
         String[][] premadeBoard = {
   
-                {null, null, "-*", "-*", null, null, null, null, null},
-                {null, "-*", "-o", "-o", "-*", null, null, null, null},
-                {null,  "-*", "-o", null, "-o", "-*", null, null, null},
-                {null,  "-*", "-o", "-o", "-o", "-*", null, null, null},
-                {null,  "-*", "-o", null, "-o", "-*", null, null, null},
-                {null, null, "-*", "-o", "-o", "-*", null, null, null},
-                {null, null, null, "-*", "-*", null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null}
+                {"|", "-|", "-*", "-*", "-|", "-|", "-|", "-|", "-|"},
+                {"|", "-*", "-o", "-o", "-*", "-|", "-|", "-|", "-|"},
+                {"|",  "-*", "-o", "-|", "-o", "-*", "-|", "-|", "-|"},
+                {"|",  "-*", "-o", "-o", "-o", "-*", "-|", "-|", "-|"},
+                {"|",  "-*", "-o", "-|", "-o", "-*", "-|", "-|", "-|"},
+                {"|", "-|", "-*", "-o", "-o", "-*", "-|", "-|", "-|"},
+                {"|", "-|", "-|", "-*", "-*", "-|", "-|", "-|", "-|"},
+                {"|", "-|", "-|", "-|", "-|", "-|", "-|", "-|", "-|"},
+                {"|", "-|", "-|", "-|", "-|", "-|", "-|", "-|", "-|"}
 
         };
 
@@ -106,7 +106,7 @@ public static boolean[][] alive = new boolean[9][9];
 
                     // Add the new coordinate to our list of coordinates, print out the board, and
                     // flip the turn
-                    Piece p = new Piece(x, y, (blackTurn) ? true : false);
+                    Piece p = new Piece(x, y);
                     pieces.add(p);
 
                     board[y][x] = (blackTurn) ? "*" : "o";
@@ -190,12 +190,12 @@ public static boolean[][] alive = new boolean[9][9];
     private static class Piece {
         private int x;
         private int y;
-        private boolean black;
+        //private boolean black;
 
-        public Piece(int x, int y, boolean color) {
+        public Piece(int x, int y) {
             this.x = x;
             this.y = y;
-            this.black = color;
+            //this.black = color;
         }
 
         public int[] getCoordinates() {
@@ -221,14 +221,87 @@ public static boolean[][] alive = new boolean[9][9];
     }
 
 
-    public static boolean hasLiberties(int x, int y, int color, boolean[][]checked)
+    public static boolean multipleEyes(int x, int y, int color, int eyes)
     {
-       
 
-        if(numberBoard[y][x] != color)
+        boolean upValidity = checkBounds(x, y-1);
+        int up = 3;
+        if(upValidity)
+        {
+            up = numberBoard[y-1][x];
+        }
+        boolean downValidity = checkBounds(x, y+1);
+        int down = 3;
+        if(downValidity)
+        {
+            down = numberBoard[y+1][x];
+        }
+        boolean leftValidity = checkBounds(x-1, y);
+        int left = 3;
+        if(leftValidity)
+        {
+            left = numberBoard[y][x-1];
+        }
+        boolean rightValidity = checkBounds(x+1, y);
+        int right = 3;
+        if(rightValidity)
+        {
+            right = numberBoard[y][x+1];
+        }
+        
+        Piece u = new Piece(x, y-1);
+        Piece d = new Piece(x, y+1);
+        Piece l = new Piece(x-1, y);
+        Piece r = new Piece(x+1, y);
+
+        int[] adjacents = {up, down, left, right};
+        Piece[] pieces = {u, d, l, r};
+
+        boolean inAGroup = false;
+        //Check to see if a stone is in a group. The stone is in a group if it has at least one friendly stone adjacent to it
+        for(int j = 0; j < adjacents.length; j++ )
+        {
+            if(adjacents[j] == color)
+            {
+                inAGroup = true;
+                break;
+            }
+        }
+        if(!inAGroup)
         {
             return false;
         }
+
+        for(int i = 0; i < adjacents.length; i++)
+        {
+            int currColor = adjacents[i];
+            if(currColor == 0)
+            {
+                eyes++;
+                if(eyes >= 2)
+                {
+                    return true;
+                }
+            }
+            else if(currColor == color)
+            {
+                int[]coords = pieces[i].getCoordinates();
+                multipleEyes(coords[0], coords[1], currColor, eyes);
+            }
+        }
+        
+        return false;
+    }
+
+
+    public static boolean hasLiberties(int x, int y, int color, boolean[][]checked)
+    {
+
+        if(numberBoard[y][x] == oppositeColor(color) || numberBoard[y][x] == 3)
+        {
+            return false;
+        }
+        
         
         //Check up
         boolean upValidity = checkBounds(x, y-1);
@@ -264,15 +337,23 @@ public static boolean[][] alive = new boolean[9][9];
             //System.out.println(x + " " + y + " is surrounded by edge or enemy pieces");
             return false;
         }
-        if(upLiberty == 0 || downLiberty == 0 || leftLiberty == 0 || rightLiberty == 0)
-        {
-            //System.out.println(x + " , " + y + "can breathe");
-            return true;
-        }
+        
         if(checked[y][x])
         {
             //System.out.println(x + " " + y + " has already been visited");
             return false;
+        }
+
+        
+        
+        if(upLiberty == 0 || downLiberty == 0 || leftLiberty == 0 || rightLiberty == 0)
+        {
+            //check if there are more than 1 open spots
+
+
+
+            //System.out.println(x + " , " + y + "can breathe");
+            return true;
         }
 
         int throughX = 0;
@@ -356,16 +437,9 @@ public static boolean[][] alive = new boolean[9][9];
                     boolean[][] c = new boolean[9][9];
                     //System.out.println("These coords were checked for liberties: " + j + ", " + i);
                     boolean colorCanBreathe = hasLiberties(x, y, color, c);
+                    boolean manyEyes = multipleEyes(x, y, color, 0);
                     
-                    /*
-                    if(!colorCanBreathe)
-                    {
-                        System.out.println("X coordinate: " + x + "Y coordinate: " + y + "has no liberties" );
-                    }
-                    */
-
-                    //System.out.println();
-                    
+                   
                     
                     visited[y][x] = true;
                     alive[y][x] = colorCanBreathe;
@@ -424,11 +498,5 @@ public static boolean[][] alive = new boolean[9][9];
             System.out.println();
         }
     }
-
-    
-
-
-
-    // ◯ ●
     
 }

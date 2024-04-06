@@ -1,3 +1,4 @@
+package goLab2.src;
 import java.util.Scanner;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class App {
                     }
                 } else // Print the peice at [i][j]
                 {
-                    if (i == 0) {
+                    if (j == 0) {
                         System.out.print(array[i][j]);
                     } else {
                         System.out.print("-" + array[i][j]);
@@ -40,8 +41,8 @@ public class App {
         }
     }
 
-    static boolean checkBounds(int x, int y, int bound) {
-        if ((x >= bound || x < 0) || (y >= bound || y < 0)) {
+    static boolean checkBounds(int x, int y) {
+        if ((x >= 8 || x < 0) || (y >= 8 || y < 0)) {
             return false;
         } else {
             return true;
@@ -50,12 +51,12 @@ public class App {
     }
 
 
-    private static class Coordinate {
+    private static class Piece {
         private int x;
         private int y;
         private boolean black;
 
-        public Coordinate(int x, int y, boolean color) {
+        public Piece(int x, int y, boolean color) {
             this.x = x;
             this.y = y;
             this.black = color;
@@ -66,16 +67,148 @@ public class App {
             return c;
         }
 
+
         //Implement a method to check if a piece is surrounded by opponents/edges
 
     }
 
+    /*
+    //Pass through the current piece we want to check
+    static boolean breathe(int x, int y, int color, boolean[][] visitedCoords)
+    {
+        //If the current pieces coordinates are out of bounds, return false
+        if(!checkBounds(x, y))
+        {
+            return false;
+        }
+        //If we've already checked this coordinate, return false
+        if(visited[x][y])
+        {
+            return false;
+        }
+        //If the position we are checking is equal to 0 on number board, it is an empty spot! We have found a liberty
+        if(numberBoard[x][y] == 0)
+        {
+            return true;
+        }
+        //We've found an enemy piece
+        if(numberBoard[x][y] != color)
+        {
+            return false;
+        }
+
+        visitedCoords[x][y] = true;
+
+        boolean hasLiberties = breathe(x -1, y, color, visitedCoords) || breathe(x + 1, y, color, visitedCoords) || breathe(x, y-1, color, visitedCoords) || breathe(x, y+1,color, visitedCoords);
+
+        return hasLiberties;
+  
+    }
+    */
+
+    public static boolean hasLiberties(int x, int y, int color)
+    {
+        //Check up
+        boolean upValidity = checkBounds(x, y+1);
+        int upLiberty = 3;
+        if(upValidity)
+        {
+            upLiberty = numberBoard[x][y+1];
+        }
+        boolean downValidity = checkBounds(x, y-1);
+        int downLiberty = 3;
+        if(downValidity)
+        {
+            downLiberty = numberBoard[x][y-1];
+        }
+        boolean leftValidity = checkBounds(x-1, y);
+        int leftLiberty = 3;
+        if(leftValidity)
+        {
+            leftLiberty = numberBoard[x-1][y];
+        }
+        boolean rightValidity = checkBounds(x+1, y);
+        int rightLiberty = 3;
+        if(rightValidity)
+        {
+            rightLiberty = numberBoard[x+1][y];
+        }
+
+        //If any position is = 0, this coordinate has a liberty (and can "breathe")
+        if(upLiberty == 0 || downLiberty == 0 || leftLiberty == 0 || rightLiberty == 0)
+        {
+            return true;
+        }
+        //This means that this stone is surrounded by wall or the opponents stone since it didn't pass the first check.
+        else if(upLiberty != color || downLiberty != color || leftLiberty != color || rightLiberty != color)
+        {
+            return false;
+        }
+        //This means that the stone is surrounded but has a friendly stone next to it, we need to check if that stone can breathe
+        else
+        {
+
+        }
+    }
+
+    public static boolean canBreathe()
+    {
+        boolean[][] visited = new boolean[9][9];
+
+        // Iterate over the entire board
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                int color = numberBoard[i][j];
+                //if the current piece is 0, its empty, no need to check if it has liberties. OR, if we've already visited this piece, don't check
+                if(color != 1 || color != 2 || visited[i][j])
+                {
+                    continue;
+                }
+                //Otherwise, check if this piece has liberties
+                else
+                {
+
+                }
+
+                /*
+                if (numberBoard[i][j] == color && !visited[i][j]) {
+                    // Start DFS from the current position
+                    if (!breathe(i, j, color, visited)) {
+                        return false; // No liberties found for this group
+                    }
+                    */
+                }
+            }
+        }
+        return true; 
+    }
+    
+
+    static void printNumberBoard()
+    {
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                System.out.print(numberBoard[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    
+// Initialize the 2d board to be 19 x 19
+public static String[][] board = new String[9][9];
+
+//Empty spot is 0, black piece is 1, white piece is 2
+public static int[][] numberBoard = new int[9][9]; 
+
+public static boolean[][] visited = new boolean[9][9];
+
+
     // ◯ ●
     public static void main(String[] args) {
-        // Initialize the 2d board to be 19 x 19
-        String[][] board = new String[9][9];
-
-        boolean[][] lives = new boolean[9][9];
+        
 
         String[][] premadeBoard = {
   
@@ -98,7 +231,7 @@ public class App {
         int dimension = board.length - 1;
         Scanner obj = new Scanner(System.in);
         boolean blackTurn = true;
-        ArrayList<Coordinate> coordinates = new ArrayList<>();
+        ArrayList<Piece> pieces = new ArrayList<>();
         boolean keepPlaying = true;
         while (keepPlaying) {
             // Prompt the user to enter coordinates for whoever's turn it is
@@ -119,7 +252,7 @@ public class App {
                 y = obj.nextInt();
                 System.out.println();
 
-                if (!checkBounds(x, y, dimension)) {
+                if (!checkBounds(x, y)) {
                     System.out.println("Please enter a valid coordinate\n");
                     continue;
                 }
@@ -127,8 +260,8 @@ public class App {
                 // Loop through coordinates and check to see if the selected coordinates already
                 // have a piece on them
 
-                for (Coordinate c : coordinates) {
-                    int[] establishedCoords = c.getCoordinates();
+                for (Piece p : pieces) {
+                    int[] establishedCoords = p.getCoordinates();
                     if (x == establishedCoords[0] && y == establishedCoords[1]) {
                         System.out.println("A stone has already been placed there, please enter new coordinates");
                         alreadyPlaced = true;
@@ -147,9 +280,15 @@ public class App {
 
             // Add the new coordinate to our list of coordinates, print out the board, and
             // flip the turn
-            Coordinate c = new Coordinate(x, y, (blackTurn) ? true : false);
-            coordinates.add(c);
-            if(y == 0 && x > 0)
+            Piece p = new Piece(x, y, (blackTurn) ? true : false);
+            pieces.add(p);
+            /*
+            System.out.println("X coordinate:");
+            System.out.println(x);
+            System.out.println("Y coordinate:");
+            System.out.println(y);
+            
+            if((y == 0 && x > 0))
             {
                 board[y][x] = (blackTurn) ? "-*" : "-o";
             }
@@ -157,10 +296,18 @@ public class App {
             {
                 board[y][x] = (blackTurn) ? "*" : "o";
             }
+            */
+            board[y][x] = (blackTurn) ? "*" : "o";
             
             printBoard(board);
             System.out.println();
+            numberBoard[y][x] = (blackTurn) ? 1 : 2;
             blackTurn = !blackTurn; // Flip the turn
+
+            boolean pieceCanBreathe = canBreathe();
+            System.out.println(pieceCanBreathe);
+
+            //printNumberBoard();
 
             //Check to see if any pieces have been captured. Adjust scores accordingly if so
             
@@ -168,6 +315,7 @@ public class App {
             //within opponent territory
 
             //Each time a piece is added, a check must be done to see if that piece is now apart of a group of pieces (of that same color)
+            
         }
 
     }

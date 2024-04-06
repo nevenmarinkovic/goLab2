@@ -2,6 +2,7 @@ package goLab;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.*;
 public class Go {
 
 // Initialize the 2d board to be 19 x 19
@@ -69,7 +70,12 @@ public static double whiteScore = 6.5;
                     passCount ++;
                     if(passCount == 3)
                     {
-                        System.out.println("That marks the end of the game! Let's calculate the score...");
+                        System.out.println("That marks the end of the game!");
+                        calculateScore();
+                        //Set<Piece> territory = calculateTerritory(0,0);
+                        //int size = territory.size();
+                        //System.out.println(size);
+                        //System.out.println("Black scored: " + blackScore + " and white scored: " + whiteScore);
                         //Implement a scoring function
                         System.exit(0);
                     }
@@ -255,6 +261,38 @@ public static double whiteScore = 6.5;
          int[] adjacents = {up, down, left, right};
     
         return adjacents;
+    }
+
+    public static Set<Piece> calculateTerritory(int x, int y) {
+        Set<Piece> territory = new HashSet<>();
+        visited = new boolean[9][9];
+
+        // Perform flood-fill starting from the specified intersection
+        floodFill(x, y, territory);
+
+        return territory;
+    }
+
+    public static void floodFill(int x, int y, Set<Piece> territory) {
+        // Check if the intersection is out of bounds or already visited
+        if (x < 0 || x >= 9 || y < 0 || y >= 9 || visited[y][x]) {
+            return;
+        }
+
+        // Mark the intersection as visited
+        visited[y][x] = true;
+
+        // Check if the intersection is empty
+        if (numberBoard[y][x] == 0) {
+            // Add the intersection to the territory
+            territory.add(new Piece(x, y));
+
+            // Recursively flood-fill neighboring intersections
+            floodFill(x + 1, y, territory); // Right
+            floodFill(x - 1, y, territory); // Left
+            floodFill(x, y + 1, territory); // Down
+            floodFill(x, y - 1, territory); // Up
+        }
     }
 
 
@@ -544,6 +582,110 @@ public static double whiteScore = 6.5;
         //System.out.println(x + " , "+y+ " can breathe via: (" + throughX + " , " + throughY + ")");
         return true;
         
+    }
+
+    public static boolean enclosed(int x, int y)
+    {
+        if (x < 0 || x >= 9 || y < 0 || y >= 9 || visited[y][x]) {
+            return true;
+        }
+
+        visited[y][x] = true;
+
+        
+         boolean right = enclosed(x + 1, y);
+         boolean left = enclosed(x - 1, y);
+         boolean down = enclosed(x , y+ 1);
+         boolean up = enclosed(x , y-1);
+
+         if(!up || !down || !left || !right)
+         {
+            return false;
+         }
+         return true;
+        
+    }
+
+    public static void calculateScore()
+    {
+        for(int y = 0; y < 9; y++)
+        {
+            for(int x = 0; x <9; x++)
+            {
+                if(enclosed(x, y))
+                {
+                    Set<Piece> t = calculateTerritory(x, y);
+                    int total = t.size();
+                    int team = whichTeam(x, y);
+                    if(total > 28)
+                    {
+                        team = 3;
+                    }
+                    System.out.println("Team "+team+" "+x + " " + y + " is in a territory that contains " + total + "spots");
+                    
+                }
+            }
+        }
+    }
+
+    public static int whichTeam(int x, int y)
+    {
+        //Check pieces to the right
+        for(int i = x; i < 9 - x; i++)
+        {
+            int piece = numberBoard[y][i];
+            if(numberBoard[y][i] == 1)
+            {
+                return 1;
+            }
+            else if(numberBoard[y][i] == 2)
+            {
+                return 2;
+            }
+        }
+
+        //Check pieces to the left
+        for(int i = x; i >= 0; i--)
+        {
+            int piece = numberBoard[y][i];
+            if(numberBoard[y][i] == 1)
+            {
+                return 1;
+            }
+            else if(numberBoard[y][i] == 2)
+            {
+                return 2;
+            }
+        }
+
+        //Check pieces above
+        for(int i = y; i >= 0; i--)
+        {
+            int piece = numberBoard[i][x];
+            if(numberBoard[i][x] == 1)
+            {
+                return 1;
+            }
+            else if(numberBoard[i][x] == 2)
+            {
+                return 2;
+            }
+        }
+
+        for(int i = y; i < 9 - y; i++)
+        {
+            int piece = numberBoard[y][i];
+            if(numberBoard[i][x] == 1)
+            {
+                return 1;
+            }
+            else if(numberBoard[i][x] == 2)
+            {
+                return 2;
+            }
+        }
+
+        return 3;
     }
 
     public static void canBreathe()

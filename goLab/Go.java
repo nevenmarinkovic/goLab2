@@ -57,7 +57,7 @@ public static boolean[][] alive = new boolean[9][9];
                 y = obj.nextInt();
                 System.out.println();
 
-                System.out.println(x + " " + y);
+                //System.out.println(x + " " + y);
 
                 //The user entering in (-1,-1) as coordinates represents a "pass" move. 3 pass moves in a row end the game
                 if(x == -1 && y == -1)
@@ -82,7 +82,7 @@ public static boolean[][] alive = new boolean[9][9];
                 }
                 else
                 {
-                    System.out.println("Else branch was run");
+                    //System.out.println("Else branch was run");
                     // Loop through coordinates and check to see if the selected coordinates already
                     // have a piece on them
 
@@ -111,9 +111,31 @@ public static boolean[][] alive = new boolean[9][9];
 
                     board[y][x] = (blackTurn) ? "*" : "o";
                     
-                    printBoard(board);
+                    
                     System.out.println();
                     numberBoard[y][x] = (blackTurn) ? 1 : 2;
+                    
+
+                    boolean[][] v = new boolean[9][9];
+                    //If the piece we just placed has no liberties (and is automatically dead), set the numberBoard[y][x] back to 0 and set the 
+                    //actual board back to | or -|
+                    if(!hasLiberties(x, y, numberBoard[y][x], v))
+                    {
+                        System.out.println("You cannot have a stone commit suicide!");
+                        numberBoard[y][x] = 0;
+                        if(x == 0)
+                        {
+                            board[y][x] = "|";
+                        }
+                        else
+                        {
+                            board[y][x] = "-|";
+                        }
+                        continue;
+
+                    }
+
+                    printBoard(board);
                     printNumberBoard();
                     blackTurn = !blackTurn; // Flip the turn
 
@@ -125,7 +147,6 @@ public static boolean[][] alive = new boolean[9][9];
         }
 
     }
-
 
      static void printBoard(String[][] array) {
 
@@ -367,15 +388,16 @@ public static boolean[][] alive = new boolean[9][9];
 
                 if(color == 1 && !lives)
                 {
-                    System.out.println("Black piece at (" + x + ", " + y + ") is captured");
+                    System.out.println("Black piece at (" + x + ", " + y + ") has been captured");
                 }
                 else if(color == 2 && !lives)
                 {
-                    System.out.println("White piece at (" + x + ", " + y + ") is captured");
+                    System.out.println("White piece at (" + x + ", " + y + ") has been captured");
                 }
             }
-            //System.out.println();
+            
         }
+        System.out.println();
     }
     
 

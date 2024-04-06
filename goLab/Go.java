@@ -32,7 +32,7 @@ public static boolean[][] alive = new boolean[9][9];
         printBoard(board);
 
         // Board establishedCoords = new Board();
-
+        int passCount = 0;
         int dimension = board.length - 1;
         Scanner obj = new Scanner(System.in);
         boolean blackTurn = true;
@@ -57,72 +57,71 @@ public static boolean[][] alive = new boolean[9][9];
                 y = obj.nextInt();
                 System.out.println();
 
-                if (!checkBounds(x, y)) {
+                System.out.println(x + " " + y);
+
+                //The user entering in (-1,-1) as coordinates represents a "pass" move. 3 pass moves in a row end the game
+                if(x == -1 && y == -1)
+                {
+                    passCount ++;
+                    if(passCount == 3)
+                    {
+                        System.out.println("That marks the end of the game! Let's calculate the score...");
+                        //Implement a scoring function
+                        System.exit(0);
+                    }
+                    else
+                    {
+                        blackTurn = !blackTurn; // Flip the turn
+                        break;
+                    }
+                    
+                }
+                else if (!checkBounds(x, y)) {
                     System.out.println("Please enter a valid coordinate\n");
                     continue;
                 }
+                else
+                {
+                    System.out.println("Else branch was run");
+                    // Loop through coordinates and check to see if the selected coordinates already
+                    // have a piece on them
 
-                // Loop through coordinates and check to see if the selected coordinates already
-                // have a piece on them
+                    for (Piece p : pieces) {
+                        int[] establishedCoords = p.getCoordinates();
+                        if (x == establishedCoords[0] && y == establishedCoords[1]) {
+                            System.out.println("A stone has already been placed there, please enter new coordinates");
+                            alreadyPlaced = true;
+                            break;
+                        }
+                    }
 
-                for (Piece p : pieces) {
-                    int[] establishedCoords = p.getCoordinates();
-                    if (x == establishedCoords[0] && y == establishedCoords[1]) {
-                        System.out.println("A stone has already been placed there, please enter new coordinates");
-                        alreadyPlaced = true;
+                    // We made it through the for loop and no matches were made. Exit out of the
+                    // "input" while loop
+
+                    if (alreadyPlaced) {
                         break;
                     }
+
+                
+
+                    // Add the new coordinate to our list of coordinates, print out the board, and
+                    // flip the turn
+                    Piece p = new Piece(x, y, (blackTurn) ? true : false);
+                    pieces.add(p);
+
+                    board[y][x] = (blackTurn) ? "*" : "o";
+                    
+                    printBoard(board);
+                    System.out.println();
+                    numberBoard[y][x] = (blackTurn) ? 1 : 2;
+                    printNumberBoard();
+                    blackTurn = !blackTurn; // Flip the turn
+
+                    canBreathe();
+                    checkCapturedPieces();
                 }
-
-                // We made it through the for loop and no matches were made. Exit out of the
-                // "input" while loop
-
-                if (!alreadyPlaced) {
-                    break;
-                }
-
+    
             }
-
-            // Add the new coordinate to our list of coordinates, print out the board, and
-            // flip the turn
-            Piece p = new Piece(x, y, (blackTurn) ? true : false);
-            pieces.add(p);
-            /*
-            System.out.println("X coordinate:");
-            System.out.println(x);
-            System.out.println("Y coordinate:");
-            System.out.println(y);
-            
-            if((y == 0 && x > 0))
-            {
-                board[y][x] = (blackTurn) ? "-*" : "-o";
-            }
-            else
-            {
-                board[y][x] = (blackTurn) ? "*" : "o";
-            }
-            */
-            board[y][x] = (blackTurn) ? "*" : "o";
-            
-            printBoard(board);
-            System.out.println();
-            numberBoard[y][x] = (blackTurn) ? 1 : 2;
-            printNumberBoard();
-            blackTurn = !blackTurn; // Flip the turn
-
-            canBreathe();
-            //printAliveBoard();
-
-
-            //printNumberBoard();
-
-            //Check to see if any pieces have been captured. Adjust scores accordingly if so
-            
-            //A piece is captured when all adjacent points are surrounded (by edge or by opponent pieces) unless the pieces form their own territory (requires two enclosed eyes or spaces)
-            //within opponent territory
-
-            //Each time a piece is added, a check must be done to see if that piece is now apart of a group of pieces (of that same color)
-            
         }
 
     }
@@ -241,17 +240,17 @@ public static boolean[][] alive = new boolean[9][9];
 
         if((upLiberty == oColor || upLiberty == 3) && (downLiberty == oColor || downLiberty == 3) &&(leftLiberty == oColor || leftLiberty == 3)&&(rightLiberty == oColor || rightLiberty == 3))
         {
-            System.out.println(x + " " + y + " is surrounded by edge or enemy pieces");
+            //System.out.println(x + " " + y + " is surrounded by edge or enemy pieces");
             return false;
         }
         if(upLiberty == 0 || downLiberty == 0 || leftLiberty == 0 || rightLiberty == 0)
         {
-            System.out.println(x + " , " + y + "can breathe");
+            //System.out.println(x + " , " + y + "can breathe");
             return true;
         }
         if(checked[y][x])
         {
-            System.out.println(x + " " + y + " has already been visited");
+            //System.out.println(x + " " + y + " has already been visited");
             return false;
         }
 
@@ -275,7 +274,7 @@ public static boolean[][] alive = new boolean[9][9];
                     //checked[y][x+1] = true;
                     if(!hasLiberties(x + 1, y, color, checked))
                     {
-                        System.out.println("None of " + x + " " + y +" surrounding pieces can breathe");
+                        //System.out.println("None of " + x + " " + y +" surrounding pieces can breathe");
                         return false;
                     }
                     else
@@ -304,74 +303,8 @@ public static boolean[][] alive = new boolean[9][9];
             throughY = y+1;
         }
 
-        System.out.println(x + " , "+y+ " can breathe via: (" + throughX + " , " + throughY + ")");
+        //System.out.println(x + " , "+y+ " can breathe via: (" + throughX + " , " + throughY + ")");
         return true;
-
-        /*
-        if(upLiberty == color)
-        {
-            System.out.println("Upliberty. friendlyStone = " + friendlyStone);
-            //If the stone that is adjacent to this current one 
-            if(friendlyStone == 1)
-            {
-                System.out.println("Upliberty, but we were sent from a down liberty. Return False");
-                return false;
-            }
-            else
-            {
-                //System.out.println("Friendly stone is 0");
-                return hasLiberties(x, y -1, color, 0);
-                
-                
-            }
-            
-        }
-        else if(downLiberty == color)
-
-        {
-            System.out.println("Down. friendlyStone = " + friendlyStone);
-            if(friendlyStone == 0)
-            {
-                System.out.println("Downliberty, but we were sent from a Upliberty. Return False");
-                return false;
-            }
-            else
-            {
-                //System.out.println("Friendly stone is 1");
-                return hasLiberties(x, y + 1, color, 1);
-            }
-            
-        }
-        else if(leftLiberty == color)
-        {
-            System.out.println("leftliberty. friendlyStone = " + friendlyStone);
-            if(friendlyStone == 3)
-            {
-                System.out.println("Leftliberty, but we were sent from a right liberty. Return False");
-                return false;
-            }
-            else
-            {
-                //System.out.println("Friendly stone is 2");
-                return hasLiberties(x -1, y, color, 2);
-            }
-            
-        }
-        else
-        {
-            System.out.println("Rightliberty. friendlyStone = " + friendlyStone);
-            if(friendlyStone == 2)
-            {
-                System.out.println("Rightliberty, but we were sent from a Leftliberty. Return False");
-                return false;
-            }
-            else
-            {
-                //System.out.println("Friendly stone is 3");
-                return hasLiberties(x + 1, y, color, 3);
-            }
-        }
-        */
         
     }
 
@@ -398,17 +331,19 @@ public static boolean[][] alive = new boolean[9][9];
                 //Otherwise, check if this piece has liberties
                 else
                 {
-                    System.out.println();
+                    //System.out.println();
                     boolean[][] c = new boolean[9][9];
                     //System.out.println("These coords were checked for liberties: " + j + ", " + i);
                     boolean colorCanBreathe = hasLiberties(x, y, color, c);
                     
+                    /*
                     if(!colorCanBreathe)
                     {
                         System.out.println("X coordinate: " + x + "Y coordinate: " + y + "has no liberties" );
                     }
+                    */
 
-                    System.out.println();
+                    //System.out.println();
                     
                     
                     visited[y][x] = true;
@@ -420,6 +355,28 @@ public static boolean[][] alive = new boolean[9][9];
                 }
             }
         }
+
+    static void checkCapturedPieces()
+    {
+        for(int y = 0; y < 9; y++)
+        {
+            for(int x = 0; x < 9; x++)
+            {
+                int color = numberBoard[y][x];
+                boolean lives = alive[y][x];
+
+                if(color == 1 && !lives)
+                {
+                    System.out.println("Black piece at (" + x + ", " + y + ") is captured");
+                }
+                else if(color == 2 && !lives)
+                {
+                    System.out.println("White piece at (" + x + ", " + y + ") is captured");
+                }
+            }
+            //System.out.println();
+        }
+    }
     
 
     static void printNumberBoard()

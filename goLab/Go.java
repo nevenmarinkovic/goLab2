@@ -69,10 +69,23 @@ public static double whiteScore = 6.5;
                     if(passCount == 3)
                     {
                         System.out.println("That marks the end of the game!");
-                        calculateScore();
-                        //Set<Piece> territory = calculateTerritory(0,0);
-                        //int size = territory.size();
-                        //System.out.println(size);
+                        findTerritory();
+                        /* 
+                        boolean [][] tempTerritory = new boolean[9][9];
+                        tempTerritory[0][0] = isInTerritory(0, 0, tempTerritory);
+                        tempTerritory[0][1] = isInTerritory(1, 0, tempTerritory);
+                        if(tempTerritory[0][1] && tempTerritory[0][0])
+                        {
+                            System.out.println("TRUE");
+                        }
+                        else
+                        {
+                            System.out.println("FALSE");
+
+                        }
+                        */
+                        printTerritoryBoard();
+                        
                         //System.out.println("Black scored: " + blackScore + " and white scored: " + whiteScore);
                         //Implement a scoring function
                         System.exit(0);
@@ -153,6 +166,7 @@ public static double whiteScore = 6.5;
                     //Loop through numberBoard, if the current number is 0, check it's adjacents. Territory is captured when 0s are only in contact
                     //with walls or 1 type of color. Look at a 0, if it runs into a color, make the color attribute equal to that color. If we ever
                     //are in contact with another color, we can return false. Update our territory[][] array.
+                    //Only call the check and calculate territory function once the game ends
                     
                     //Create a function to loop through the territory[][] array and find what color that territory belongs to 
                 }
@@ -162,13 +176,150 @@ public static double whiteScore = 6.5;
 
     }
 
+    static void printTerritoryBoard()
+    {
+        for(int i = 0; i < 9; i++)
+        {
+            for(int j = 0; j < 9; j++)
+            {
+                System.out.print(territory[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    static boolean isInTerritory(int x, int y, boolean[][] v, boolean touchedBlack, boolean touchedWhite)
+    {
+
+        
+        //grab the four pieces around our current piece
+        int[] adjacentPieces = retrieveAdjacents(x, y);
+
+        //loop through those pieces, check values. If a 0 is ever touching both a white and a black piece, it cannot be within a territory.
+        int blackCount = 0;
+        int whiteCount = 0;
+        int libertyCount = 0;
+        for(int i = 0; i <adjacentPieces.length; i++)
+        {
+            if(adjacentPieces[i] == 1)
+            {
+                blackCount += 1;
+                touchedBlack = true;
+            }
+            else if(adjacentPieces[i] == 2)
+            {
+                whiteCount += 1;
+                touchedWhite = true;
+            }
+            else if(adjacentPieces[i] == 0)
+            {
+                libertyCount += 1;
+            }
+        }
+
+        if(blackCount != 0 && whiteCount != 0)
+        {
+            return false;
+        }
+        if(touchedBlack && touchedWhite)
+        {
+            return false;
+        }
+
+        if(v[y][x])
+        {            
+            return true;
+        }
+
+        //if there are no liberties and only one color present, the spot is within a territory
+        /*
+        else if(libertyCount == 0)
+        {
+            return true;
+        }
+        */
+
+        if(libertyCount != 0)
+        {
+            boolean validAdjacents = true;
+
+            //if we haven't visited this piece and it's adjacents don't contain both a white and black piece, let's check the adjacent values
+            boolean upValidity = checkBounds(x, y-1);
+            if(upValidity)
+            {
+                if(numberBoard[y-1][x] == 0)
+                {
+                    v[y][x] = true;
+                    if(!isInTerritory(x, y-1, v, touchedBlack, touchedWhite))
+                    {
+                        validAdjacents = false;
+                    }
+                }
+            }
+            boolean downValidity = checkBounds(x, y+1);
+            if(downValidity)
+            {
+                if(numberBoard[y+1][x] == 0)
+                {
+                    v[y][x] = true;
+                    if(!isInTerritory(x, y+1, v, touchedBlack, touchedWhite))
+                    {
+                        validAdjacents = false;
+                    }
+                }
+                
+            }
+            boolean leftValidity = checkBounds(x-1, y);
+            if(leftValidity)
+            {
+                if(numberBoard[y][x-1] == 0)
+                {
+                    v[y][x] = true;
+                    if(!isInTerritory(x-1, y, v, touchedBlack, touchedWhite))
+                    {
+                        validAdjacents = false;
+                    }
+                }
+            }
+            boolean rightValidity = checkBounds(x+1, y);
+            if(rightValidity)
+            {
+                if(numberBoard[y][x+1]==0)
+                {
+                    v[y][x] = true;
+                    if(!isInTerritory(x+1, y, v, touchedBlack, touchedWhite))
+                    {
+                        validAdjacents = false;
+                    }
+                }
+            }
+            return validAdjacents;
+        }
+        return true;
+
+        
+
+    }
+
     static void findTerritory()
     {
         for(int y = 0; y < 9; y++)
         {
             for(int x = 0; x < 9; x++)
             {
-
+                if(numberBoard[y][x] == 0)
+                {
+                    boolean [][] haveVisited = new boolean[9][9];
+                    //call the isInTerritory function
+                    boolean inTerritory = isInTerritory(x, y, haveVisited, false, false);
+                    
+                    System.out.println();
+                    if(inTerritory)
+                    {
+                        territory[y][x] = true;
+                    }
+                    //territory[y][x] = true;
+                }
             }
         }
     }
@@ -245,7 +396,7 @@ public static double whiteScore = 6.5;
         }
     }
 
-    public static int[] retrieveAdjacents(int x, int y, int color)
+    public static int[] retrieveAdjacents(int x, int y)
     {
         boolean upValidity = checkBounds(x, y-1);
         int up = 3;

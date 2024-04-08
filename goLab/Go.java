@@ -4,7 +4,8 @@
  * The following is an attempt at recreating the go Board game. Many features/rules are not implemented. My isInTerritory() function has a weird
  * bug where it'll count territory as belonging to a team in games in which pieces are not played in the middle of the board, so keep that in mind
  * as you test/play the game. You can uncomment out the printTerritory() call within the exit block in the main function to see this. You can 
- * play along the edges as long as you put a piece in the middle somewhere (like 4,4), the scoring calculation will be correct.
+ * play along the edges as long as you put a piece in the middle somewhere (like 4,4), the scoring calculation will be correct. The program works
+ * correctly for most common situations - per my testing.
  */
 
 

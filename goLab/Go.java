@@ -10,6 +10,7 @@ public static int[][] numberBoard = new int[9][9];
 
 public static boolean[][] visited = new boolean[9][9];
 public static boolean[][] alive = new boolean[9][9];
+public static boolean[][] territory = new boolean[9][9];
 
 public static double blackScore = 0;
 public static double whiteScore = 6.5;
@@ -149,11 +150,27 @@ public static double whiteScore = 6.5;
                     canBreathe();
                     board = checkCapturedPieces(board);
                     printBoard(board);
+                    //Loop through numberBoard, if the current number is 0, check it's adjacents. Territory is captured when 0s are only in contact
+                    //with walls or 1 type of color. Look at a 0, if it runs into a color, make the color attribute equal to that color. If we ever
+                    //are in contact with another color, we can return false. Update our territory[][] array.
+                    
+                    //Create a function to loop through the territory[][] array and find what color that territory belongs to 
                 }
     
             }
         }
 
+    }
+
+    static void findTerritory()
+    {
+        for(int y = 0; y < 9; y++)
+        {
+            for(int x = 0; x < 9; x++)
+            {
+
+            }
+        }
     }
 
      static void printBoard(String[][] array) {

@@ -232,17 +232,13 @@ public static double whiteScore = 6.5;
         {            
             return true;
         }
-
-        //if there are no liberties and only one color present, the spot is within a territory
-        /*
-        else if(libertyCount == 0)
+        if(libertyCount == 0)
         {
             return true;
         }
-        */
 
-        if(libertyCount != 0)
-        {
+
+
             boolean validAdjacents = true;
 
             //if we haven't visited this piece and it's adjacents don't contain both a white and black piece, let's check the adjacent values
@@ -258,6 +254,7 @@ public static double whiteScore = 6.5;
                     }
                 }
             }
+            
             boolean downValidity = checkBounds(x, y+1);
             if(downValidity)
             {
@@ -269,7 +266,6 @@ public static double whiteScore = 6.5;
                         validAdjacents = false;
                     }
                 }
-                
             }
             boolean leftValidity = checkBounds(x-1, y);
             if(leftValidity)
@@ -295,9 +291,8 @@ public static double whiteScore = 6.5;
                     }
                 }
             }
+            //v[y][x] = false;
             return validAdjacents;
-        }
-        return true;
 
         
 
@@ -315,10 +310,11 @@ public static double whiteScore = 6.5;
                     //call the isInTerritory function
                     boolean inTerritory = isInTerritory(x, y, haveVisited, false, false);
                     
-                    System.out.println();
+                    //System.out.println();
                     if(inTerritory)
                     {
                         territory[y][x] = true;
+                        //System.out.println(x + ", " + y);
                     }
                     //territory[y][x] = true;
                 }

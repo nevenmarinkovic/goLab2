@@ -142,6 +142,8 @@ public static double whiteScore = 6.5;
                     //actual board back to | or -|
                     if(!hasLiberties(x, y, numberBoard[y][x], v))
                     {
+                        //If a stone has no liberties, check the size of the territory it is in. If the territory size is greater than the min
+                        //number of spaces needed to form 2 eyes within a territory
                         System.out.println("You cannot have a stone commit suicide!");
                         numberBoard[y][x] = 0;
                         if(x == 0)

@@ -1,9 +1,19 @@
+/*Neven Marinkovic
+ * 4/8/2024
+ * CSCI 152 - Go Lab2
+ * The following is an attempt at recreating the go Board game. Many features/rules are not implemented. My isInTerritory() function has a weird
+ * bug where it'll count territory as belonging to a team in games in which pieces are not played in the middle of the board, so keep that in mind
+ * as you test/play the game. You can uncomment out the printTerritory() call within the exit block in the main function to see this. You can 
+ * play along the edges as long as you put a piece in the middle somewhere (like 4,4), the scoring calculation will be correct.
+ */
+
+
 package goLab;
 import java.util.*;
 public class Go {
 
 // Initialize the 2d board to be 19 x 19
-public static String[][] board = new String[9][9];
+public static String[][] board = new String[9][9];                                
 
 //Empty spot is 0, black piece is 1, white piece is 2
 public static int[][] numberBoard = new int[9][9]; 
@@ -18,25 +28,10 @@ public static double whiteScore = 6.5;
     public static void main(String[] args) {
         
 
-        String[][] premadeBoard = {
-  
-                {"|", "-|", "-*", "-*", "-|", "-|", "-|", "-|", "-|"},
-                {"|", "-*", "-o", "-o", "-*", "-|", "-|", "-|", "-|"},
-                {"|",  "-*", "-o", "-|", "-o", "-*", "-|", "-|", "-|"},
-                {"|",  "-*", "-o", "-o", "-o", "-*", "-|", "-|", "-|"},
-                {"|",  "-*", "-o", "-|", "-o", "-*", "-|", "-|", "-|"},
-                {"|", "-|", "-*", "-o", "-o", "-*", "-|", "-|", "-|"},
-                {"|", "-|", "-|", "-*", "-*", "-|", "-|", "-|", "-|"},
-                {"|", "-|", "-|", "-|", "-|", "-|", "-|", "-|", "-|"},
-                {"|", "-|", "-|", "-|", "-|", "-|", "-|", "-|", "-|"}
-
-        };
-
         printBoard(board);
 
         // Board establishedCoords = new Board();
         int passCount = 0;
-        int dimension = board.length - 1;
         Scanner obj = new Scanner(System.in);
         boolean blackTurn = true;
         ArrayList<Piece> pieces = new ArrayList<>();
@@ -66,28 +61,16 @@ public static double whiteScore = 6.5;
                 if(x == -1 && y == -1)
                 {
                     passCount ++;
-                    if(passCount == 3)
+                    if(passCount == 2)
                     {
                         System.out.println("That marks the end of the game!");
+                        board = checkCapturedPieces(board);
                         findTerritory();
-                        /* 
-                        boolean [][] tempTerritory = new boolean[9][9];
-                        tempTerritory[0][0] = isInTerritory(0, 0, tempTerritory);
-                        tempTerritory[0][1] = isInTerritory(1, 0, tempTerritory);
-                        if(tempTerritory[0][1] && tempTerritory[0][0])
-                        {
-                            System.out.println("TRUE");
-                        }
-                        else
-                        {
-                            System.out.println("FALSE");
-
-                        }
-                        */
-                        printTerritoryBoard();
                         
-                        //System.out.println("Black scored: " + blackScore + " and white scored: " + whiteScore);
-                        //Implement a scoring function
+                        //printTerritoryBoard();
+                        
+                        System.out.println("Black scored: " + blackScore + " and white scored: " + whiteScore);
+                        obj.close();
                         System.exit(0);
                     }
                     else
@@ -103,10 +86,6 @@ public static double whiteScore = 6.5;
                 }
                 else
                 {
-                    //System.out.println("Else branch was run");
-                    // Loop through coordinates and check to see if the selected coordinates already
-                    // have a piece on them
-
                     for (Piece p : pieces) {
                         int[] establishedCoords = p.getCoordinates();
                         if (x == establishedCoords[0] && y == establishedCoords[1]) {
@@ -116,14 +95,10 @@ public static double whiteScore = 6.5;
                         }
                     }
 
-                    // We made it through the for loop and no matches were made. Exit out of the
-                    // "input" while loop
-
+                    // We made it through the for loop and no matches were made. Exit out of the input while loop
                     if (alreadyPlaced) {
                         break;
                     }
-
-                
 
                     // Add the new coordinate to our list of coordinates, print out the board, and
                     // flip the turn
@@ -163,14 +138,8 @@ public static double whiteScore = 6.5;
                     blackTurn = !blackTurn; // Flip the turn
 
                     canBreathe();
-                    board = checkCapturedPieces(board);
-                    printBoard(board);
-                    //Loop through numberBoard, if the current number is 0, check it's adjacents. Territory is captured when 0s are only in contact
-                    //with walls or 1 type of color. Look at a 0, if it runs into a color, make the color attribute equal to that color. If we ever
-                    //are in contact with another color, we can return false. Update our territory[][] array.
-                    //Only call the check and calculate territory function once the game ends
                     
-                    //Create a function to loop through the territory[][] array and find what color that territory belongs to 
+                    printBoard(board);
                 }
     
             }
@@ -193,113 +162,78 @@ public static double whiteScore = 6.5;
     static boolean isInTerritory(int x, int y, boolean[][] v, boolean touchedBlack, boolean touchedWhite)
     {
 
-        
-        //grab the four pieces around our current piece
         int[] adjacentPieces = retrieveAdjacents(x, y);
 
         //loop through those pieces, check values. If a 0 is ever touching both a white and a black piece, it cannot be within a territory.
-        int blackCount = 0;
-        int whiteCount = 0;
-        int libertyCount = 0;
         for(int i = 0; i <adjacentPieces.length; i++)
         {
             if(adjacentPieces[i] == 1)
             {
-                blackCount += 1;
                 touchedBlack = true;
             }
             else if(adjacentPieces[i] == 2)
             {
-                whiteCount += 1;
                 touchedWhite = true;
-            }
-            else if(adjacentPieces[i] == 0)
-            {
-                libertyCount += 1;
             }
         }
 
-        if(blackCount != 0 && whiteCount != 0)
-        {
-            return false;
-        }
+        //If our piece is indirectly (or directly) connected to both a white and a black piece, it cannot be within a territory
         if(touchedBlack && touchedWhite)
         {
             return false;
         }
-
+        //If we haven't hit a black and a white piece yet AND this point has already been visited, return true
+        /*
         if(v[y][x])
-        {            
-            return true;
-        }
-        if(libertyCount == 0)
         {
             return true;
         }
+        */
 
-
-
-            boolean validAdjacents = true;
-
-            //if we haven't visited this piece and it's adjacents don't contain both a white and black piece, let's check the adjacent values
-            boolean upValidity = checkBounds(x, y-1);
-            if(upValidity)
-            {
-                if(numberBoard[y-1][x] == 0)
-                {
-                    v[y][x] = true;
-                    if(!isInTerritory(x, y-1, v, touchedBlack, touchedWhite))
-                    {
-                        validAdjacents = false;
-                    }
-                }
-            }
+        v[y][x] = true;
+        //Otherwise, we need to check our adjacent pieces and see if we need to try any of those paths
+        //Check the above spot
+        if(checkBounds(x, y-1) && numberBoard[y-1][x] == 0 && !v[y-1][x])
+        {
             
-            boolean downValidity = checkBounds(x, y+1);
-            if(downValidity)
+            if(!isInTerritory(x, y-1, v, touchedBlack, touchedWhite))
             {
-                if(numberBoard[y+1][x] == 0)
-                {
-                    v[y][x] = true;
-                    if(!isInTerritory(x, y+1, v, touchedBlack, touchedWhite))
-                    {
-                        validAdjacents = false;
-                    }
-                }
+                return false;
             }
-            boolean leftValidity = checkBounds(x-1, y);
-            if(leftValidity)
+        }
+        //Check the spot below
+        if(checkBounds(x, y+1) && numberBoard[y+1][x] == 0 && !v[y+1][x])
+        {
+            if(!isInTerritory(x, y+1, v, touchedBlack, touchedWhite))
             {
-                if(numberBoard[y][x-1] == 0)
-                {
-                    v[y][x] = true;
-                    if(!isInTerritory(x-1, y, v, touchedBlack, touchedWhite))
-                    {
-                        validAdjacents = false;
-                    }
-                }
-            }
-            boolean rightValidity = checkBounds(x+1, y);
-            if(rightValidity)
+                return false;
+            } 
+        }
+        //Check the spot to the left
+        if(checkBounds(x-1, y) && numberBoard[y][x-1] == 0 && !v[y][x-1])
+        {
+            if(!isInTerritory(x-1, y, v, touchedBlack, touchedWhite))
             {
-                if(numberBoard[y][x+1]==0)
-                {
-                    v[y][x] = true;
-                    if(!isInTerritory(x+1, y, v, touchedBlack, touchedWhite))
-                    {
-                        validAdjacents = false;
-                    }
-                }
+                return false;
             }
-            //v[y][x] = false;
-            return validAdjacents;
+        }
+        //Check the spot to the right
+        if(checkBounds(x+1, y) && numberBoard[y][x+1] == 0 && !v[y][x+1])
+        {
+            if(!isInTerritory(x+1, y, v, touchedBlack, touchedWhite))
+            {
+                return false;
+            }
+        }
 
+        return true;
         
 
     }
 
     static void findTerritory()
     {
+        
         for(int y = 0; y < 9; y++)
         {
             for(int x = 0; x < 9; x++)
@@ -308,19 +242,29 @@ public static double whiteScore = 6.5;
                 {
                     boolean [][] haveVisited = new boolean[9][9];
                     //call the isInTerritory function
-                    boolean inTerritory = isInTerritory(x, y, haveVisited, false, false);
+                    boolean inTerritory = false;
                     
-                    //System.out.println();
+                    inTerritory = isInTerritory(x, y, haveVisited, false, false);
                     if(inTerritory)
                     {
                         territory[y][x] = true;
-                        //System.out.println(x + ", " + y);
+                        int team = whichTeam(x, y);
+                        if(team == 1)
+                        {
+                            blackScore ++;
+                        }
+                        else if(team == 2)
+                        {
+                            whiteScore++;
+                        }
                     }
-                    //territory[y][x] = true;
+
                 }
             }
         }
     }
+
+
 
      static void printBoard(String[][] array) {
 
@@ -426,219 +370,19 @@ public static double whiteScore = 6.5;
         return adjacents;
     }
 
-    public static Set<Piece> calculateTerritory(int x, int y) {
-        Set<Piece> territory = new HashSet<>();
-        visited = new boolean[9][9];
 
-        // Perform flood-fill starting from the specified intersection
-        floodFill(x, y, territory);
-
-        return territory;
-    }
-
-    public static void floodFill(int x, int y, Set<Piece> territory) {
-        // Check if the intersection is out of bounds or already visited
-        if (x < 0 || x >= 9 || y < 0 || y >= 9 || visited[y][x]) {
-            return;
-        }
-
-        // Mark the intersection as visited
-        visited[y][x] = true;
-
-        // Check if the intersection is empty
-        if (numberBoard[y][x] == 0) {
-            // Add the intersection to the territory
-            territory.add(new Piece(x, y));
-
-            // Recursively flood-fill neighboring intersections
-            floodFill(x + 1, y, territory); // Right
-            floodFill(x - 1, y, territory); // Left
-            floodFill(x, y + 1, territory); // Down
-            floodFill(x, y - 1, territory); // Up
-        }
-    }
-
-
-    /*
-    public static boolean multipleEyes(int x, int y, int color, ArrayList<int[]> eyes, int fStones, boolean[][]checked)
-    {
-
-        if(checked[y][x])
-        {
-            System.out.println("We've already checked: " + x + " " + y);
-            return false;
-        }
-        int[] temp = {x, y};
-        int[] sTemp = {y, x};
-        //If we are checking a spot that is in our eyes list, that means a piece has been placed on what was once an eye
-        if(eyes.contains(temp))
-        {
-            eyes.remove(temp);
-        }
-        else if(eyes.contains(sTemp))
-        {
-            eyes.remove(sTemp);
-        }
-    
-        boolean upValidity = checkBounds(x, y-1);
-        int up = 3;
-        if(upValidity)
-        {
-            up = numberBoard[y-1][x];
-        }
-        boolean downValidity = checkBounds(x, y+1);
-        int down = 3;
-        if(downValidity)
-        {
-            down = numberBoard[y+1][x];
-        }
-        boolean leftValidity = checkBounds(x-1, y);
-        int left = 3;
-        if(leftValidity)
-        {
-            left = numberBoard[y][x-1];
-        }
-        boolean rightValidity = checkBounds(x+1, y);
-        int right = 3;
-        if(rightValidity)
-        {
-            right = numberBoard[y][x+1];
-        }
-        
-        Piece u = new Piece(x, y-1);
-        Piece d = new Piece(x, y+1);
-        Piece l = new Piece(x-1, y);
-        Piece r = new Piece(x+1, y);
-
-        int[] adjacents = {up, down, left, right};
-        Piece[] pieces = {u, d, l, r};
-
-        boolean inAGroup = false;
-        //Check to see if a stone is in a group. The stone is in a group if it has at least one friendly stone adjacent to it
-        for(int j = 0; j < adjacents.length; j++ )
-        {
-            if(adjacents[j] == color)
-            {
-                inAGroup = true;
-                break;
-            }
-        }
-        if(!inAGroup)
-        {
-            //System.out.println(x + " " + y + " is not in a group");
-            return false;
-        }
-
-        //keep track of any eyes we find in this grouping. Check to see if the eyes found are surrounded by teammates/wall.
-        //also keep track of the number of friendly pieces this grouping has
-
-        //ArrayList<int[]> eyeCoords = new ArrayList<>();
-
-        for(int i = 0; i < adjacents.length; i++)
-        {
-            
-            int currColor = adjacents[i];
-            int[]coords = pieces[i].getCoordinates();
-            int xc = coords[0];
-            
-            int yc = coords[1];
-            
-            if(checked[yc][xc])
-            {
-                return false;
-            }
-            
-            
-            //One of the adjacent spots is empty. If it's not already in our list of eyes, add it.
-            if(currColor == 0)
-            {
-                //eyes++;
-                
-                int[] toAdd = {xc, yc};
-                if(!eyes.contains(toAdd))
-                {
-                    //System.out.println(xc + " " + yc + " is being added to our list of eyes");
-                    eyes.add(toAdd);
-                    
-                }
-                
-            }
-            else if(currColor == color)
-            {
-                fStones++;
-                checked[y][x] = true;
-                System.out.println("Caling multiple eyes: " + x + " " + y);
-                if(multipleEyes(coords[0], coords[1], currColor, eyes, fStones,checked))
-                {
-                    return false;
-                }
-            }
-        }
-        
-        //Exiting the loop means we've hit a point where we are no longer connected to an eye or a friendly stone
-        //If we have less than 4 stones in our chain, we can't possibly have 2 eyes "within" our borders
-        if(fStones < 5)
-        {
-            //System.out.println(x + " " + y + " doesn't have enough stones in the group");
-            return false;
-        }
-        //if we have more than 4 stones, it's possible we have 2 eyes within. Check to see how many eyes are in our list
-        else
-        {
-            //System.out.println("We have more than 4 in our group");
-            if(eyes.size() < 2)    //if we don't have at least 2 eyes our chain is connected to, we can return false
-            {
-                System.out.println(x + " " + y + " not enough eyes");
-                return false;
-            }
-            //Otherwise, we need to check our eyes and see what's around them. If two or more are surrounded by only wall/same color stones, 
-            //we successfully have 2 eyes within our borders and the whole chain is alive
-            else
-            {
-                //System.out.println("We have more than 4 in our group. We have more than 2 eyes");
-                for(int c = 0; c < eyes.size(); c++)
-                {
-                    int[] point = eyes.get(c);
-                    int xToSearch = point[0];
-                    int yToSearch = point[1];
-                    int[] adjacentPoints = retrieveAdjacents(xToSearch, yToSearch, color);
-                    int eyeTouchingEnemyCount = 0;
-                    for(int z = 0; z < adjacentPoints.length; z++)
-                    {
-                        //if any of the eyes within a grouping are touching the opponent, we can't have them secured
-                        
-                        if(z == oppositeColor(color))
-                        {
-                            eyeTouchingEnemyCount++;
-                        }
-                    }
-                    //This means that all of our eyes are touching the enemy
-                    //System.out.print("Size of eyes:" + eyes.size());
-                    //System.out.println(eyes.size() - eyeTouchingEnemyCount);
-                    if(eyes.size() - eyeTouchingEnemyCount < 2)
-                    {
-                        System.out.println(x + " " + y +" not enough eyes that are not touching an enemy");
-                        return false;
-                    }
-
-
-                }
-                return true;
-            }
-        }
-        //return false;
-    }
-    */
 
 
     public static boolean hasLiberties(int x, int y, int color, boolean[][]checked)
     {
-
+        if(!checkBounds(x, y))
+        {
+            return false;
+        }
         if(numberBoard[y][x] == oppositeColor(color) || numberBoard[y][x] == 3)
         {
             return false;
         }
-        
         
         //Check up
         boolean upValidity = checkBounds(x, y-1);
@@ -685,11 +429,6 @@ public static double whiteScore = 6.5;
         
         if(upLiberty == 0 || downLiberty == 0 || leftLiberty == 0 || rightLiberty == 0)
         {
-            //check if there are more than 1 open spots
-
-
-
-            //System.out.println(x + " , " + y + "can breathe");
             return true;
         }
 
@@ -698,17 +437,29 @@ public static double whiteScore = 6.5;
         checked[y][x] = true;
         if(!hasLiberties(x, y + 1, color,checked ))
         {
-            checked[y+1][x] = true;
+            if(checkBounds(x, y+1))
+            {
+                checked[y+1][x] = true;
+            }
+            
             
             //If the left liberty can't breathe, check the up liberty
             if(!hasLiberties(x -1, y, color, checked))
             {
-                checked[y][x-1] = true;
+                if(checkBounds(x-1, y))
+                {
+                    checked[y][x-1] = true;
+                }
+                
                 //Check the up liberty
                 
                 if(!hasLiberties(x, y -1, color, checked))
                 {
-                    checked[y-1][x] = true;
+                    if(checkBounds(x, y-1))
+                    {
+                        checked[y-1][x] = true;
+                    }
+                    
                     //Finally, check the right liberty
                     //checked[y][x+1] = true;
                     if(!hasLiberties(x + 1, y, color, checked))
@@ -747,52 +498,6 @@ public static double whiteScore = 6.5;
         
     }
 
-    public static boolean enclosed(int x, int y)
-    {
-        if (x < 0 || x >= 9 || y < 0 || y >= 9 || visited[y][x]) {
-            return true;
-        }
-
-        visited[y][x] = true;
-
-        
-         boolean right = enclosed(x + 1, y);
-         boolean left = enclosed(x - 1, y);
-         boolean down = enclosed(x , y+ 1);
-         boolean up = enclosed(x , y-1);
-
-         if(!up || !down || !left || !right)
-         {
-            return false;
-         }
-         return true;
-        
-    }
-
-    public static void calculateScore()
-    {
-        int bTotal = 0;
-        int wTotal = 0;
-        Map<String, Integer> frequencies = new HashMap<>();
-        for(int y = 0; y < 9; y++)
-        {
-            for(int x = 0; x <9; x++)
-            {
-                if(enclosed(x, y))
-                {
-                    Set<Piece> t = calculateTerritory(x, y);
-                    int total = t.size();
-                    int team = whichTeam(x, y);
-                    if(total > 28)
-                    {
-                        team = 3;
-                    }
-                    System.out.println("Team "+team+" "+x + " " + y + " is in a territory that contains " + total + "spots");
-                    
-                }
-            }
-        }
-    }
 
     public static int whichTeam(int x, int y)
     {
@@ -851,13 +556,12 @@ public static double whiteScore = 6.5;
             }
         }
 
-        return 3;
+        return 0;
     }
 
     public static void canBreathe()
     {
         boolean[][] visited = new boolean[9][9];
-        boolean[][] secondCheck = new boolean[9][9];
 
         // Iterate over the entire board
         for (int y = 0; y < 9; y++) {
@@ -881,26 +585,7 @@ public static double whiteScore = 6.5;
                     //System.out.println();
                     boolean[][] c = new boolean[9][9];
                     //System.out.println("These coords were checked for liberties: " + j + ", " + i);
-                    boolean colorCanBreathe = hasLiberties(x, y, color, c);
-                    ArrayList<int[]> eyes = new ArrayList<>();
-                    
-                    /*
-                    System.out.println("Calling multiple eyes with: " + x + " " + y);
-                    boolean manyEyes = multipleEyes(x, y, color, eyes, 0, secondCheck);
-                    //secondCheck[y][x] = true;
-                    System.out.println();
-                    //A stone is connected to at least one liberty
-                    if(colorCanBreathe)
-                    {
-                        //if many eyes is true, that means a stone is a part of a group that has 2 or more eyes and is safe
-                        if(manyEyes)
-                        {
-                            System.out.println("Group of stones with 2 eyes");
-                        }
-                    }
-                    */
-                    
-                   
+                    boolean colorCanBreathe = hasLiberties(x, y, color, c);    
                     
                     visited[y][x] = true;
                     alive[y][x] = colorCanBreathe;
@@ -923,16 +608,22 @@ public static double whiteScore = 6.5;
 
                 if(color == 1 && !lives)
                 {
-                    System.out.println("Black piece at (" + x + ", " + y + ") has been captured");
-                    blackScore += 1;
+                    System.out.println("Black piece at (" + x + ", " + y + ") has been captured by White!");
+                    whiteScore += 1;
                     gBoard[y][x] = "|";
+                    numberBoard[y][x] = 0;
+                    //Set the piece that was dead back to life, so that it doesn't get counted each iteration 
+                    alive[y][x] = true;
                     
                 }
                 else if(color == 2 && !lives)
                 {
-                    System.out.println("White piece at (" + x + ", " + y + ") has been captured");
-                    whiteScore += 1;
+                    System.out.println("White piece at (" + x + ", " + y + ") has been captured by Black!");
+                    blackScore += 1;
                     gBoard[y][x] = "|";
+                    numberBoard[y][x] = 0;
+                    //Set the piece that was dead back to life, so that it doesn't get counted each iteration 
+                    alive[y][x] = true;
                 }
             }
             
